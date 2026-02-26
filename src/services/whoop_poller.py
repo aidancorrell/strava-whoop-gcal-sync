@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from src.config import settings
 from src.database import async_session
 from src.auth.oauth_manager import get_valid_token
-from src.services.whoop_service import get_workouts, get_sleep, get_cycles
+from src.services.whoop_service import get_workouts, get_sleep
 from src.services.google_calendar import find_or_create_calendar
 from src.services.sync_engine import sync_activity
 from src.formatters.whoop_formatter import format_workout, format_sleep
@@ -63,26 +63,13 @@ async def poll_whoop():
         except Exception:
             logger.exception("Error fetching Whoop workouts")
 
-        # Fetch sleep + cycles (cycles contain recovery scores in v2)
+        # Fetch sleep
         try:
             sleep_records = await get_sleep(whoop_token, start=start_filter)
-            cycles = await get_cycles(whoop_token, start=start_filter)
-
-            # Build recovery map from cycles: cycle_id -> recovery score
-            recovery_map = {}
-            for c in cycles:
-                if c.get("score"):
-                    recovery_map[c["id"]] = c.get("score", {})
-
             for s in sleep_records:
                 if s.get("score_state") != "SCORED":
                     continue
-                # Match sleep to its cycle's recovery
-                recovery = None
-                cycle_id = s.get("cycle_id")
-                if cycle_id and cycle_id in recovery_map:
-                    recovery = {"score": recovery_map[cycle_id]}
-                event_body = format_sleep(s, recovery)
+                event_body = format_sleep(s)
                 await sync_activity(
                     db, source="whoop", source_id=f"sleep-{s['id']}",
                     activity_type="sleep", event_body=event_body,
@@ -90,4 +77,4 @@ async def poll_whoop():
                 )
             logger.info("Synced %d Whoop sleep records", len(sleep_records))
         except Exception:
-            logger.exception("Error fetching Whoop sleep/recovery")
+            logger.exception("Error fetching Whoop sleep")
