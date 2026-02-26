@@ -33,6 +33,12 @@ async def get_sleep(access_token: str, start: str | None = None) -> list[dict]:
             headers={"Authorization": f"Bearer {access_token}"},
             params=params,
         )
+        if resp.status_code == 404:
+            logger.warning("Whoop sleep endpoint returned 404, trying without params")
+            resp = await client.get(
+                f"{WHOOP_API_BASE}/activity/sleep",
+                headers={"Authorization": f"Bearer {access_token}"},
+            )
         resp.raise_for_status()
         return resp.json().get("records", [])
 
@@ -44,9 +50,15 @@ async def get_recovery(access_token: str, start: str | None = None) -> list[dict
         params["start"] = start
     async with httpx.AsyncClient() as client:
         resp = await client.get(
-            f"{WHOOP_API_BASE}/recovery",
+            f"{WHOOP_API_BASE}/cycle/recovery",
             headers={"Authorization": f"Bearer {access_token}"},
             params=params,
         )
+        if resp.status_code == 404:
+            logger.warning("Whoop recovery endpoint returned 404, trying without params")
+            resp = await client.get(
+                f"{WHOOP_API_BASE}/cycle/recovery",
+                headers={"Authorization": f"Bearer {access_token}"},
+            )
         resp.raise_for_status()
         return resp.json().get("records", [])
