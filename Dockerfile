@@ -13,7 +13,7 @@ COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/pytho
 COPY --from=builder /usr/local/bin /usr/local/bin
 COPY . .
 
-RUN chown -R appuser:appuser /app
+RUN mkdir -p /data && chown -R appuser:appuser /app /data
 USER appuser
 
 EXPOSE 8000
