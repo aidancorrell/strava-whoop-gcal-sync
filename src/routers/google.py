@@ -24,7 +24,7 @@ async def google_auth_redirect():
         "client_id": settings.google_client_id,
         "redirect_uri": f"{settings.app_base_url}/auth/google/callback",
         "response_type": "code",
-        "scope": "https://www.googleapis.com/auth/calendar.events",
+        "scope": "https://www.googleapis.com/auth/calendar",
         "access_type": "offline",
         "prompt": "consent",
     }
