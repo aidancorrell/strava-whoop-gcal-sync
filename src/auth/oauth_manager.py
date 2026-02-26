@@ -53,28 +53,16 @@ async def get_valid_token(db: AsyncSession, service: str, token_url: str, client
             logger.warning("Token expired for %s and no refresh token available", service)
             return None
         logger.info("Refreshing token for %s", service)
-        # Whoop requires Basic auth; Strava/Google use POST body params
-        if service == "whoop":
-            async with httpx.AsyncClient() as client:
-                resp = await client.post(
-                    token_url,
-                    auth=(client_id, client_secret),
-                    data={
-                        "grant_type": "refresh_token",
-                        "refresh_token": token.refresh_token,
-                    },
-                )
-        else:
-            async with httpx.AsyncClient() as client:
-                resp = await client.post(
-                    token_url,
-                    data={
-                        "grant_type": "refresh_token",
-                        "refresh_token": token.refresh_token,
-                        "client_id": client_id,
-                        "client_secret": client_secret,
-                    },
-                )
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                token_url,
+                data={
+                    "grant_type": "refresh_token",
+                    "refresh_token": token.refresh_token,
+                    "client_id": client_id,
+                    "client_secret": client_secret,
+                },
+            )
         resp.raise_for_status()
         data = resp.json()
         await store_tokens(
