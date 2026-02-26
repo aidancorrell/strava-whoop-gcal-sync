@@ -4,7 +4,7 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-WHOOP_API_BASE = "https://api.prod.whoop.com/developer/v1"
+WHOOP_API_BASE = "https://api.prod.whoop.com/developer/v2"
 
 
 async def get_workouts(access_token: str, start: str | None = None) -> list[dict]:
@@ -33,32 +33,20 @@ async def get_sleep(access_token: str, start: str | None = None) -> list[dict]:
             headers={"Authorization": f"Bearer {access_token}"},
             params=params,
         )
-        if resp.status_code == 404:
-            logger.warning("Whoop sleep endpoint returned 404, trying without params")
-            resp = await client.get(
-                f"{WHOOP_API_BASE}/activity/sleep",
-                headers={"Authorization": f"Bearer {access_token}"},
-            )
         resp.raise_for_status()
         return resp.json().get("records", [])
 
 
-async def get_recovery(access_token: str, start: str | None = None) -> list[dict]:
-    """Fetch recovery data from Whoop."""
+async def get_cycles(access_token: str, start: str | None = None) -> list[dict]:
+    """Fetch cycles (which contain recovery data) from Whoop."""
     params = {}
     if start:
         params["start"] = start
     async with httpx.AsyncClient() as client:
         resp = await client.get(
-            f"{WHOOP_API_BASE}/cycle/recovery",
+            f"{WHOOP_API_BASE}/cycle",
             headers={"Authorization": f"Bearer {access_token}"},
             params=params,
         )
-        if resp.status_code == 404:
-            logger.warning("Whoop recovery endpoint returned 404, trying without params")
-            resp = await client.get(
-                f"{WHOOP_API_BASE}/cycle/recovery",
-                headers={"Authorization": f"Bearer {access_token}"},
-            )
         resp.raise_for_status()
         return resp.json().get("records", [])

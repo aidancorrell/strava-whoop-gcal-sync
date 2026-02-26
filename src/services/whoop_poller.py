@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from src.config import settings
 from src.database import async_session
 from src.auth.oauth_manager import get_valid_token
-from src.services.whoop_service import get_workouts, get_sleep, get_recovery
+from src.services.whoop_service import get_workouts, get_sleep, get_cycles
 from src.services.google_calendar import find_or_create_calendar
 from src.services.sync_engine import sync_activity
 from src.formatters.whoop_formatter import format_workout, format_sleep
@@ -40,7 +40,6 @@ async def poll_whoop():
         calendar_id = find_or_create_calendar(google_token)
 
         # Look back from last poll, or 1 hour on first run
-        start_filter = None
         if _last_poll:
             start_filter = _last_poll.isoformat() + "Z"
         else:
@@ -52,7 +51,7 @@ async def poll_whoop():
         try:
             workouts = await get_workouts(whoop_token, start=start_filter)
             for w in workouts:
-                if not w.get("score"):
+                if w.get("score_state") != "SCORED":
                     continue
                 event_body = format_workout(w)
                 await sync_activity(
@@ -64,20 +63,25 @@ async def poll_whoop():
         except Exception:
             logger.exception("Error fetching Whoop workouts")
 
-        # Fetch sleep + recovery
+        # Fetch sleep + cycles (cycles contain recovery scores in v2)
         try:
             sleep_records = await get_sleep(whoop_token, start=start_filter)
-            recovery_records = await get_recovery(whoop_token, start=start_filter)
-            # Index recovery by cycle_id or date for matching
+            cycles = await get_cycles(whoop_token, start=start_filter)
+
+            # Build recovery map from cycles: cycle_id -> recovery score
             recovery_map = {}
-            for r in recovery_records:
-                if r.get("sleep_id"):
-                    recovery_map[r["sleep_id"]] = r
+            for c in cycles:
+                if c.get("score"):
+                    recovery_map[c["id"]] = c.get("score", {})
 
             for s in sleep_records:
-                if not s.get("score"):
+                if s.get("score_state") != "SCORED":
                     continue
-                recovery = recovery_map.get(s.get("id"))
+                # Match sleep to its cycle's recovery
+                recovery = None
+                cycle_id = s.get("cycle_id")
+                if cycle_id and cycle_id in recovery_map:
+                    recovery = {"score": recovery_map[cycle_id]}
                 event_body = format_sleep(s, recovery)
                 await sync_activity(
                     db, source="whoop", source_id=f"sleep-{s['id']}",
