@@ -31,8 +31,13 @@ async def whoop_auth_redirect():
 
 
 @router.get("/callback")
-async def whoop_callback(code: str, db: AsyncSession = Depends(get_db)):
+async def whoop_callback(code: str | None = None, error: str | None = None, db: AsyncSession = Depends(get_db)):
     """Handle Whoop OAuth callback — exchange code for tokens."""
+    if error:
+        logger.error("Whoop OAuth error: %s", error)
+        return HTMLResponse(f"<h2>Whoop auth failed</h2><p>Error: {error}</p><p><a href='/'>← Back</a></p>")
+    if not code:
+        return HTMLResponse("<h2>Whoop auth failed</h2><p>No authorization code received.</p><p><a href='/'>← Back</a></p>")
     async with httpx.AsyncClient() as client:
         resp = await client.post(
             WHOOP_TOKEN_URL,
