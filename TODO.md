@@ -1,10 +1,10 @@
 # TODO
 
 ## Phase 2: OAuth2 Flows
-- [ ] Strava callback: exchange auth code for tokens in `src/routers/strava.py`, store via `oauth_manager`
-- [ ] Whoop callback: exchange auth code for tokens in `src/routers/whoop.py`, store via `oauth_manager`
-- [ ] Google callback: exchange auth code for tokens in `src/routers/google.py`, store via `oauth_manager`
-- [ ] Build a landing page at `/` showing auth status per service with "Connect" buttons
+- [x] Strava callback: exchange auth code for tokens in `src/routers/strava.py`, store via `oauth_manager`
+- [x] Whoop callback: exchange auth code for tokens in `src/routers/whoop.py`, store via `oauth_manager`
+- [x] Google callback: exchange auth code for tokens in `src/routers/google.py`, store via `oauth_manager`
+- [x] Build a landing page at `/` showing auth status per service with "Connect" buttons
 
 ## Phase 3: Strava Integration
 - [ ] Add webhook router at `/webhook/strava` (GET for validation challenge, POST for events)

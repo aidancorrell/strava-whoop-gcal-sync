@@ -1,7 +1,15 @@
-from fastapi import APIRouter, Request
-from fastapi.responses import RedirectResponse
+import logging
 
+import httpx
+from fastapi import APIRouter, Depends
+from fastapi.responses import HTMLResponse, RedirectResponse
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.auth.oauth_manager import store_tokens
 from src.config import settings
+from src.database import get_db
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -23,8 +31,27 @@ async def strava_auth_redirect():
 
 
 @router.get("/callback")
-async def strava_callback(code: str):
+async def strava_callback(code: str, db: AsyncSession = Depends(get_db)):
     """Handle Strava OAuth callback — exchange code for tokens."""
-    # TODO: Exchange code for tokens via STRAVA_TOKEN_URL
-    # TODO: Store tokens in DB via OAuthToken
-    return {"message": "Strava connected", "code": code}
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            STRAVA_TOKEN_URL,
+            data={
+                "client_id": settings.strava_client_id,
+                "client_secret": settings.strava_client_secret,
+                "code": code,
+                "grant_type": "authorization_code",
+            },
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+    await store_tokens(
+        db,
+        service="strava",
+        access_token=data["access_token"],
+        refresh_token=data.get("refresh_token"),
+        expires_in=data.get("expires_in"),
+    )
+    logger.info("Strava connected for athlete %s", data.get("athlete", {}).get("id"))
+    return HTMLResponse("<h2>Strava connected!</h2><p><a href='/'>← Back</a></p>")
