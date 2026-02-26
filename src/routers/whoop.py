@@ -30,7 +30,7 @@ async def whoop_auth_redirect():
         "client_id": settings.whoop_client_id,
         "redirect_uri": f"{settings.app_base_url}/auth/whoop/callback",
         "response_type": "code",
-        "scope": "read:workout read:sleep read:recovery read:profile",
+        "scope": "offline read:workout read:sleep read:recovery read:profile",
         "state": state,
     }
     query = "&".join(f"{k}={v}" for k, v in params.items())
