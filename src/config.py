@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     google_client_id: str = ""
     google_client_secret: str = ""
 
+    # Basic Auth
+    admin_username: str = "admin"
+    admin_password: str = ""  # MUST be set in production
+
     # App
     app_base_url: str = "http://localhost:8000"
     database_url: str = "sqlite+aiosqlite:///./sync.db"

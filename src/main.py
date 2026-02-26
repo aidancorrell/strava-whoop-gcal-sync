@@ -2,8 +2,9 @@ import logging
 from contextlib import asynccontextmanager
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 
+from src.auth.basic_auth import verify_admin
 from src.config import settings
 from src.database import init_db
 from src.routers import google, health, home, strava, webhook, whoop
@@ -44,9 +45,12 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Strava + Whoop → Google Calendar Sync", lifespan=lifespan)
 
-app.include_router(home.router)
+# Protected routes — require basic auth
+app.include_router(home.router, dependencies=[Depends(verify_admin)])
+app.include_router(strava.router, prefix="/auth/strava", tags=["strava"], dependencies=[Depends(verify_admin)])
+app.include_router(whoop.router, prefix="/auth/whoop", tags=["whoop"], dependencies=[Depends(verify_admin)])
+app.include_router(google.router, prefix="/auth/google", tags=["google"], dependencies=[Depends(verify_admin)])
+
+# Public routes — no auth (Strava webhook must be reachable, health check for monitoring)
 app.include_router(health.router)
-app.include_router(strava.router, prefix="/auth/strava", tags=["strava"])
-app.include_router(whoop.router, prefix="/auth/whoop", tags=["whoop"])
-app.include_router(google.router, prefix="/auth/google", tags=["google"])
 app.include_router(webhook.router, prefix="/webhook/strava", tags=["strava-webhook"])
