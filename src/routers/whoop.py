@@ -50,9 +50,8 @@ async def whoop_callback(code: str | None = None, state: str | None = None, erro
     async with httpx.AsyncClient() as client:
         resp = await client.post(
             WHOOP_TOKEN_URL,
+            auth=(settings.whoop_client_id, settings.whoop_client_secret),
             data={
-                "client_id": settings.whoop_client_id,
-                "client_secret": settings.whoop_client_secret,
                 "code": code,
                 "grant_type": "authorization_code",
                 "redirect_uri": f"{settings.app_base_url}/auth/whoop/callback",
@@ -60,6 +59,9 @@ async def whoop_callback(code: str | None = None, state: str | None = None, erro
         )
         resp.raise_for_status()
         data = resp.json()
+
+    logger.info("Whoop token response keys: %s, has refresh: %s, expires_in: %s",
+                list(data.keys()), "refresh_token" in data, data.get("expires_in"))
 
     await store_tokens(
         db,
