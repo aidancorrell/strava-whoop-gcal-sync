@@ -21,8 +21,10 @@ async def home(db: AsyncSession = Depends(get_db)):
         token = tokens.get(service)
         if token:
             expired = token.expires_at and token.expires_at < datetime.utcnow()
-            if expired:
-                badge = '<span style="color:#e67e22">&#9888; Expired</span>'
+            if expired and not token.refresh_token:
+                badge = '<span style="color:#e67e22">&#9888; Expired — reconnect needed</span>'
+            elif expired:
+                badge = '<span style="color:#27ae60">&#10003; Connected (will auto-refresh)</span>'
             else:
                 badge = '<span style="color:#27ae60">&#10003; Connected</span>'
             return f"<tr><td>{label}</td><td>{badge}</td><td><a href='/auth/{service}'>Reconnect</a></td></tr>"

@@ -4,18 +4,18 @@ from datetime import datetime
 def format_workout(workout: dict) -> dict:
     """Convert a Whoop workout to a Google Calendar event body."""
     sport = workout.get("sport_id", 0)
-    strain = workout.get("score", {}).get("strain", 0)
+    score = workout.get("score") or {}
+    strain = score.get("strain", 0)
     title = f"\U0001f4aa Whoop Workout \u2014 Strain {strain:.1f}"
 
     start_dt = datetime.fromisoformat(workout["start"].replace("Z", "+00:00"))
     end_dt = datetime.fromisoformat(workout["end"].replace("Z", "+00:00"))
 
-    score = workout.get("score", {})
     desc_parts = [
         f"Strain: {strain:.1f}",
         f"Avg HR: {score.get('average_heart_rate', 0):.0f}",
         f"Max HR: {score.get('max_heart_rate', 0):.0f}",
-        f"Calories: {score.get('kilojoule', 0) / 4.184:.0f} kcal",
+        f"Calories: {(score.get('kilojoule', 0) or 0) / 4.184:.0f} kcal",
     ]
 
     return {
