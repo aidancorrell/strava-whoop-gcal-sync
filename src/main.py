@@ -8,6 +8,7 @@ from src.auth.basic_auth import verify_admin
 from src.config import settings
 from src.database import init_db
 from src.routers import google, health, home, strava, webhook, whoop
+from src.services.strava_backfill import backfill_strava
 from src.services.whoop_poller import poll_whoop
 
 logging.basicConfig(level=settings.log_level)
@@ -31,11 +32,16 @@ async def lifespan(app: FastAPI):
     scheduler.start()
     logger.info("Whoop poller started — every %d minutes", settings.whoop_poll_interval_minutes)
 
-    # Run an initial poll on startup
+    # Run initial syncs on startup
     try:
         await poll_whoop()
     except Exception:
         logger.exception("Initial Whoop poll failed (will retry on schedule)")
+
+    try:
+        await backfill_strava(days=7)
+    except Exception:
+        logger.exception("Initial Strava backfill failed")
 
     yield
 
