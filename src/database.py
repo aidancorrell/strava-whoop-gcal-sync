@@ -19,13 +19,10 @@ async def init_db():
         await conn.run_sync(Base.metadata.create_all)
 
         # Add missing columns to existing tables (poor man's migration)
-        def add_columns_if_missing(sync_conn):
-            raw = sync_conn.connection.dbapi_connection
-            cursor = raw.cursor()
-            columns = {row[1] for row in cursor.execute("PRAGMA table_info(sync_records)")}
-            if "activity_start" not in columns:
-                cursor.execute("ALTER TABLE sync_records ADD COLUMN activity_start DATETIME")
-            if "activity_end" not in columns:
-                cursor.execute("ALTER TABLE sync_records ADD COLUMN activity_end DATETIME")
-
-        await conn.run_sync(add_columns_if_missing)
+        from sqlalchemy import text
+        result = await conn.execute(text("PRAGMA table_info(sync_records)"))
+        columns = {row[1] for row in result.fetchall()}
+        if "activity_start" not in columns:
+            await conn.execute(text("ALTER TABLE sync_records ADD COLUMN activity_start DATETIME"))
+        if "activity_end" not in columns:
+            await conn.execute(text("ALTER TABLE sync_records ADD COLUMN activity_end DATETIME"))
