@@ -30,4 +30,6 @@ class SyncRecord(Base):
     source_id: Mapped[str] = mapped_column(String(255), index=True)
     activity_type: Mapped[str] = mapped_column(String(100))  # run, ride, sleep, workout, recovery
     google_event_id: Mapped[str] = mapped_column(String(255))
+    activity_start: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    activity_end: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     synced_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

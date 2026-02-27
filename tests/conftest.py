@@ -23,15 +23,18 @@ def sample_strava_activity():
 @pytest.fixture
 def sample_whoop_workout():
     return {
-        "id": 87654321,
+        "id": "87654321-abcd-1234-efgh-567890123456",
         "sport_id": 1,
+        "sport_name": "Running",
         "start": "2024-01-15T08:00:00Z",
         "end": "2024-01-15T09:00:00Z",
+        "score_state": "SCORED",
         "score": {
             "strain": 14.2,
             "average_heart_rate": 145,
             "max_heart_rate": 172,
             "kilojoule": 2500,
+            "distance_meter": 8000,
         },
     }
 
@@ -39,12 +42,24 @@ def sample_whoop_workout():
 @pytest.fixture
 def sample_whoop_sleep():
     return {
-        "id": 11111111,
+        "id": "11111111-aaaa-2222-bbbb-333333333333",
         "start": "2024-01-14T22:30:00Z",
         "end": "2024-01-15T06:02:00Z",
+        "score_state": "SCORED",
         "score": {
+            "stage_summary": {
+                "total_in_bed_time_milli": 27120000,
+                "total_awake_time_milli": 1800000,
+                "total_light_sleep_time_milli": 10800000,
+                "total_slow_wave_sleep_time_milli": 5400000,
+                "total_rem_sleep_time_milli": 7200000,
+                "total_no_data_time_milli": 0,
+                "sleep_cycle_count": 4,
+                "disturbance_count": 2,
+            },
             "sleep_performance_percentage": 85,
-            "disturbance_count": 2,
+            "sleep_efficiency_percentage": 91.7,
+            "sleep_consistency_percentage": 90,
             "respiratory_rate": 15.3,
         },
     }

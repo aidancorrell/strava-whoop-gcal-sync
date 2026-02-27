@@ -58,6 +58,7 @@ async def poll_whoop():
                     db, source="whoop", source_id=str(w["id"]),
                     activity_type="workout", event_body=event_body,
                     google_access_token=google_token, calendar_id=calendar_id,
+                    skip_if_strava_overlap=True,
                 )
             logger.info("Synced %d Whoop workouts", len(workouts))
         except Exception:
