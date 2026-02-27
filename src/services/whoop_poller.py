@@ -14,15 +14,8 @@ logger = logging.getLogger(__name__)
 WHOOP_TOKEN_URL = "https://api.prod.whoop.com/oauth/oauth2/token"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 
-# Track last poll time in memory (resets on restart, which is fine —
-# the sync engine deduplicates so we just re-check recent items)
-_last_poll: datetime | None = None
-
-
 async def poll_whoop():
     """Fetch new Whoop data and sync to Google Calendar."""
-    global _last_poll
-
     async with async_session() as db:
         whoop_token = await get_valid_token(
             db, "whoop", WHOOP_TOKEN_URL,
@@ -39,13 +32,9 @@ async def poll_whoop():
 
         calendar_id = find_or_create_calendar(google_token)
 
-        # Look back from last poll, or 24 hours on first run to catch recent data
-        if _last_poll:
-            start_filter = _last_poll.isoformat() + "Z"
-        else:
-            start_filter = (datetime.utcnow() - timedelta(hours=24)).isoformat() + "Z"
-
-        _last_poll = datetime.utcnow()
+        # Always look back 24 hours — polls are infrequent (twice daily)
+        # and the sync engine deduplicates, so overlap is harmless
+        start_filter = (datetime.utcnow() - timedelta(hours=24)).isoformat() + "Z"
 
         # Fetch workouts
         try:

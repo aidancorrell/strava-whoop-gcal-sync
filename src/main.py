@@ -22,15 +22,15 @@ async def lifespan(app: FastAPI):
     logger.info("Starting up — initializing database")
     await init_db()
 
-    # Start Whoop polling
+    # Start Whoop polling — every hour
     scheduler.add_job(
         poll_whoop,
         "interval",
-        minutes=settings.whoop_poll_interval_minutes,
+        hours=1,
         id="whoop_poll",
     )
     scheduler.start()
-    logger.info("Whoop poller started — every %d minutes", settings.whoop_poll_interval_minutes)
+    logger.info("Whoop poller started — every hour")
 
     # Run initial syncs on startup
     try:
