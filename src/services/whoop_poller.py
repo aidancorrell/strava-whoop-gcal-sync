@@ -39,11 +39,11 @@ async def poll_whoop():
 
         calendar_id = find_or_create_calendar(google_token)
 
-        # Look back from last poll, or 1 hour on first run
+        # Look back from last poll, or 24 hours on first run to catch recent data
         if _last_poll:
             start_filter = _last_poll.isoformat() + "Z"
         else:
-            start_filter = (datetime.utcnow() - timedelta(hours=1)).isoformat() + "Z"
+            start_filter = (datetime.utcnow() - timedelta(hours=24)).isoformat() + "Z"
 
         _last_poll = datetime.utcnow()
 
