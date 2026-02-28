@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     # Strava
     strava_client_id: str = ""
     strava_client_secret: str = ""
-    strava_webhook_verify_token: str = "my-random-verify-token"
+    strava_webhook_verify_token: str = ""
 
     # Whoop
     whoop_client_id: str = ""

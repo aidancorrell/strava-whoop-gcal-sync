@@ -4,9 +4,8 @@
 Python service that syncs Strava activities and Whoop workout/sleep/recovery data to Google Calendar. Built with FastAPI, SQLAlchemy (async SQLite), and OAuth2 for all three services.
 
 ## Deployment
-- **Hosted on Railway**: https://strava-whoop-gcal-sync-production.up.railway.app
-- **Railway project**: https://railway.com/project/db57d5cd-b7c4-4881-b225-e76ee44a13b5
-- **Repo**: private GitHub repo at `aidancorrell/strava-whoop-gcal-sync`
+- **Hosted on Railway**: (see Railway dashboard for URL)
+- **Repo**: `aidancorrell/strava-whoop-gcal-sync`
 - **DB**: SQLite on a Railway persistent volume mounted at `/data`
 - **Deploy**: `railway up --detach` from project root (or push to GitHub — not auto-deploy, manual only)
 - **Logs**: `railway logs -n 50`
@@ -23,7 +22,7 @@ Python service that syncs Strava activities and Whoop workout/sleep/recovery dat
 - **Deploy to Railway**: `railway up --detach`
 
 ## Architecture
-- `src/main.py` — FastAPI app with lifespan: DB init, APScheduler for Whoop polling (every 15 min)
+- `src/main.py` — FastAPI app with lifespan: DB init, APScheduler for Whoop polling (hourly)
 - `src/config.py` — All settings via pydantic-settings, loaded from `.env` or Railway env vars
 - `src/models.py` — SQLAlchemy models: `OAuthToken`, `SyncRecord`
 - `src/routers/home.py` — Landing page at `/` showing connection status per service
@@ -56,4 +55,4 @@ Python service that syncs Strava activities and Whoop workout/sleep/recovery dat
 - TODOs in code mark unfinished work — check `TODO.md` for the full list
 
 ## Current State
-Phases 1-4 are implemented and deployed to Railway. All three OAuth services are connected. Whoop polls every 15 minutes. Strava webhook endpoint is built but the webhook subscription hasn't been registered yet (one-time curl command). See `TODO.md` for remaining work — next priorities are basic auth for the site and registering the Strava webhook.
+Phases 1-4 are implemented and deployed to Railway. All three OAuth services are connected. Whoop polls every hour. Strava webhook is registered and active. Basic auth protects all user-facing routes. See `TODO.md` for remaining work.
